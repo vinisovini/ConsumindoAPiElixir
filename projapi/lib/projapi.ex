@@ -1,57 +1,46 @@
 defmodule Projapi do
-  @moduledoc """
-  Documentation for `Projapi`.
-  """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Projapi.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
-
   defmodule Api do
-    @url "https://api.coinlore.net/api/tickers/?start=100&limit=100"
 
-    def obtem_issues() do
-      HTTPoison.get(@url)
-      |> processa_resposta
+    #função que fará o todo o processo de requisição da API
+    def main( _argv ) do
+
+      IO.puts "teste"
+      CoinloreApi.obtem_moedas
       |> mostra_resultado
-
     end
 
-    defp processa_resposta({ :ok, %HTTPoison.Response{status_code: 200, body: b}}) do { :ok, b}
-    end
-
-    defp processa_resposta({ :error, r}), do: { :error, r}
-    defp processa_resposta({ :ok, %HTTPoison.Response{ status_code: _, body: b }}) do {:error, b}
-    end
-
+    #função que mostra o resultado, primeira faz a verificação se ela recebeu error da função processa_resposta
     defp mostra_resultado({ :error, _ }) do
       IO.puts "ocorreu um erro"
     end
 
-    defp mostra_resultado({ :ok, json}) do
-      { :ok, issues } = Poison.decode(json)
-      mostra_issues(issues)
+    #função que decodificara o json recebido pela api e em caso de ter recebido um erro, avisará que falhou
+    defp mostra_resultado({:ok, json}) do
+
+      #cláusula caso receba o arquivo json
+      case Poison.decode(json) do
+        {:ok, %{"data" => moedas}} ->
+          mostra_moedas(moedas)
+
+        #cláusula caso receba erro
+        {:error, reason} ->
+          IO.puts "Erro ao decodificar JSON: #{reason}"
+
+        _ ->
+          IO.puts "Formato inesperado de resposta"
+      end
     end
 
-    defp mostra_issues([]), do: nil
-    defp mostra_issues([i | resto]) do
+    #
+    defp mostra_moedas([]), do: IO.puts "mensagem totalmente decodificada"
+    defp mostra_moedas([i | resto]) do
       name = i["name"]
       rank = i["rank"]
       price_usd = i["price_usd"]
       IO.puts "#{name} | #{rank} | #{price_usd} "
-      mostra_issues(resto)
+      mostra_moedas(resto)
 
     end
 
   end
-
 end

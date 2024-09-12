@@ -34,7 +34,6 @@ defmodule Projapi.MixProject do
   defp escript do
     [
       main_module: Projapi.Api
-
     ]
   end
 
